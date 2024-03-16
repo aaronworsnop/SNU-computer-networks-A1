@@ -42,11 +42,19 @@ int main(const int argc, const char **argv)
         exit(-1);
     }
 
+    // Build address
+    struct sockaddr_in saddr;
+    memset(&saddr, 0, sizeof(saddr));
+    saddr.sin_family = AF_INET;
+    saddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    saddr.sin_port = htons(port);
+
     // Bind the socket to the server's IP address and port
     int bind = bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     if (bind < 0)
     {
         TRACE("Bind failed: %s\n", strerror(errno));
+        close(sockfd);
         exit(-1);
     }
 }
