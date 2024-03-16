@@ -41,4 +41,12 @@ int main(const int argc, const char **argv)
         TRACE("Socket creation failed: %s\n", strerror(errno));
         exit(-1);
     }
+
+    // Bind the socket to the server's IP address and port
+    int bind = bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    if (bind < 0)
+    {
+        TRACE("Bind failed: %s\n", strerror(errno));
+        exit(-1);
+    }
 }
