@@ -54,11 +54,9 @@ int main(const int argc, const char **argv)
 
     // Create a TCP socket
     int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-    // Check if the socket is created successfully
     if (sockfd < 0)
     {
-        TRACE("socket() failed: %s\n", strerror(errno));
+        TRACE("Socket creation failed: %s\n", strerror(errno));
         exit(-1);
     }
 
