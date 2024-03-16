@@ -75,4 +75,12 @@ int main(const int argc, const char **argv)
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(port);
     memcpy(&saddr.sin_addr, host->h_addr, host->h_length);
+
+    // Connect to the server
+    if (connect(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
+    {
+        TRACE("Connection failed: %s\n", strerror(errno));
+        close(sockfd);
+        exit(-1);
+    }
 }
