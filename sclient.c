@@ -64,8 +64,15 @@ int main(const int argc, const char **argv)
     struct hostent *host = gethostbyname(pserver);
     if (host == NULL)
     {
-        fprintf("Unknown host: %s\n", pserver);
+        TRACE("Unknown host: %s\n", pserver);
         close(sockfd);
         exit(-1);
     }
+
+    // Fill in the server's address
+    struct sockaddr_in saddr;
+    memset(&saddr, 0, sizeof(saddr));
+    saddr.sin_family = AF_INET;
+    saddr.sin_port = htons(port);
+    memcpy(&saddr.sin_addr, host->h_addr, host->h_length);
 }
