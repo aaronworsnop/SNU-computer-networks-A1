@@ -45,13 +45,6 @@ int main(const int argc, const char **argv)
         exit(-1);
     }
 
-    // Request format
-    // POST message SIMPLE/1.0
-    // Host: [s-server-domain-name]
-    // Content-length: [byte-count]
-    // (empty line)
-    // [message-content]
-
     // Create a TCP socket
     int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sockfd < 0)
