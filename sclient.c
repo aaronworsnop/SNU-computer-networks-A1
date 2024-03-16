@@ -61,4 +61,13 @@ int main(const int argc, const char **argv)
         TRACE("socket() failed: %s\n", strerror(errno));
         exit(-1);
     }
+
+    // Get the IP address of the server
+    struct hostent *host = gethostbyname(pserver);
+    if (host == NULL)
+    {
+        fprintf("Unknown host: %s\n", pserver);
+        close(sockfd);
+        exit(-1);
+    }
 }
