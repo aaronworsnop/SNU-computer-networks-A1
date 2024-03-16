@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <sys/types.h>          /* See NOTES */
+#include <sys/types.h> /* See NOTES */
 #include <netdb.h>
 #include <sys/socket.h>
 #include <errno.h>
@@ -12,33 +12,46 @@
 
 #include "macro.h"
 /*--------------------------------------------------------------------------------*/
-int 
-main(const int argc, const char** argv) 
+int main(const int argc, const char **argv)
 {
     const char *pserver = NULL;
     int port = -1;
     int i;
-      
+
     /* argument processing */
-    for (i = 1; i < argc; i++)  {
-        if (strcmp(argv[i], "-p") == 0 && (i + 1) < argc) {
-            port = atoi(argv[i+1]);
+    for (i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-p") == 0 && (i + 1) < argc)
+        {
+            port = atoi(argv[i + 1]);
             i++;
-        } else if (strcmp(argv[i], "-s") == 0 && (i + 1) < argc) {
-            pserver = argv[i+1];
+        }
+        else if (strcmp(argv[i], "-s") == 0 && (i + 1) < argc)
+        {
+            pserver = argv[i + 1];
             i++;
         }
     }
 
     /* check arguments */
-    if (port < 0 || pserver == NULL) {
+    if (port < 0 || pserver == NULL)
+    {
         printf("usage: %s -p port -s server-ip\n", argv[0]);
         exit(-1);
     }
-    if (port < 1024 || port > 65535) {
+    if (port < 1024 || port > 65535)
+    {
         printf("port number should be between 1024 ~ 65535.\n");
         exit(-1);
     }
 
-    // implement your own code
+    // Request format
+    // POST message SIMPLE/1.0
+    // Host: [s-server-domain-name]
+    // Content-length: [byte-count]
+    // (empty line)
+    // [message-content]
+
+    // Create a TCP socket
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 }
