@@ -57,4 +57,13 @@ int main(const int argc, const char **argv)
         close(sockfd);
         exit(-1);
     }
+
+    // Listen for incoming connections
+    int listen = listen(sockfd, 5);
+    if (listen < 0)
+    {
+        TRACE("Listen failed: %s\n", strerror(errno));
+        close(sockfd);
+        exit(-1);
+    }
 }
