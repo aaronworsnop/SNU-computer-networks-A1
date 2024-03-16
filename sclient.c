@@ -53,5 +53,5 @@ int main(const int argc, const char **argv)
     // [message-content]
 
     // Create a TCP socket
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 }
