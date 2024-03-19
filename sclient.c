@@ -76,4 +76,47 @@ int main(const int argc, const char **argv)
         close(sockfd);
         exit(-1);
     }
+
+    // Read and parse input from stdin
+
+    // Do not assume that the input message is always a text message.It can contain
+    //     arbitrary content that includes valid “zeros” in the binary content.This means that 5 you should be careful to use string functions(e.g., strlen(), strstr()) on the input
+    //         message.
+    char message[MAX_CONT];
+    int message_len = 0;
+    int c;
+    int eof_found = 0;
+    while ((c = getchar()) != EOF && message_len < MAX_CONT)
+    {
+        if (c = EOF)
+        {
+            eof_found = 1;
+            break;
+        }
+        else
+        {
+            message[message_len++] = c;
+        }
+    }
+
+    if (message_len < 1)
+    {
+        // Input message is empty
+        TRACE("Input message is empty.\n");
+        close(sockfd);
+        exit(-1);
+    }
+    else if (message_len >= MAX_CONT)
+    {
+        // Input message is too long, warning
+        printf("Warning: Input message exceeds 10MB. Only the first 10MB will be sent.\n");
+    }
+
+    if (message_len < MAX_CONT && eof_found == 0)
+    {
+        // Input message is less than the maximum content length, but does not end with `EOF`.
+        TRACE("Input message does not end with `EOF`.\n");
+        close(sockfd);
+        exit(-1);
+    }
 }
