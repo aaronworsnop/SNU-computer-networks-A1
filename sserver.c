@@ -50,8 +50,7 @@ int main(const int argc, const char **argv)
     saddr.sin_port = htons(port);
 
     // Bind the socket to the server's IP address and port
-    int bind = bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-    if (bind < 0)
+    if (bind(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
     {
         TRACE("Bind failed: %s\n", strerror(errno));
         close(sockfd);
@@ -59,8 +58,7 @@ int main(const int argc, const char **argv)
     }
 
     // Listen for incoming connections
-    int listen = listen(sockfd, 5);
-    if (listen < 0)
+    if (listen(sockfd, 5) < 0)
     {
         TRACE("Listen failed: %s\n", strerror(errno));
         close(sockfd);
