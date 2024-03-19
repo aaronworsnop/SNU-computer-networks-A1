@@ -11,6 +11,14 @@
 #include <ctype.h>
 
 #include "macro.h"
+
+// Function to close the socket and exit
+void close_socket(int sockfd)
+{
+    close(sockfd);
+    exit(-1);
+}
+
 /*--------------------------------------------------------------------------------*/
 int main(const int argc, const char **argv)
 {
@@ -58,8 +66,7 @@ int main(const int argc, const char **argv)
     if (host == NULL)
     {
         TRACE("Unknown host: %s\n", pserver);
-        close(sockfd);
-        exit(-1);
+        close_socket(sockfd);
     }
 
     // Fill in the server's address
@@ -73,8 +80,7 @@ int main(const int argc, const char **argv)
     if (connect(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
     {
         TRACE("Connection failed: %s\n", strerror(errno));
-        close(sockfd);
-        exit(-1);
+        close_socket(sockfd);
     }
 
     // Read and parse input from stdin
@@ -103,8 +109,7 @@ int main(const int argc, const char **argv)
     {
         // Input message is empty
         TRACE("Input message is empty.\n");
-        close(sockfd);
-        exit(-1);
+        close_socket(sockfd);
     }
     else if (message_len >= MAX_CONT)
     {
@@ -116,7 +121,6 @@ int main(const int argc, const char **argv)
     {
         // Input message is less than the maximum content length, but does not end with `EOF`.
         TRACE("Input message does not end with `EOF`.\n");
-        close(sockfd);
-        exit(-1);
+        close_socket(sockfd);
     }
 }
