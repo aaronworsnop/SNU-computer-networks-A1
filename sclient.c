@@ -124,5 +124,5 @@ int main(const int argc, const char **argv)
     }
 
     // DELETE ME
-    message[message_len] = '\0';
+    printf("Input message: %s\n", message);
 }
