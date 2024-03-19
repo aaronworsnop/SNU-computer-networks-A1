@@ -94,7 +94,7 @@ int main(const int argc, const char **argv)
     int eof_found = 0;
     while ((c = getchar()) != EOF && message_len < MAX_CONT)
     {
-        if (c = EOF)
+        if (c == EOF)
         {
             eof_found = 1;
             break;
@@ -122,4 +122,7 @@ int main(const int argc, const char **argv)
         TRACE("Input message does not end with `EOF`.\n");
         close_socket(sockfd);
     }
+
+    // DELETE ME
+    message[message_len] = '\0';
 }
