@@ -113,13 +113,12 @@ int main(const int argc, const char **argv)
     }
     else if (message_len >= MAX_CONT)
     {
-        // Input message is too long, warning
+        // Input message is too long
         printf("Warning: Input message exceeds 10MB. Only the first 10MB will be sent.\n");
     }
-
-    if (message_len < MAX_CONT && eof_found == 0)
+    else if (eof_found == 0)
     {
-        // Input message is less than the maximum content length, but does not end with `EOF`.
+        // Input message is a valid length, but does not end with `EOF`.
         TRACE("Input message does not end with `EOF`.\n");
         close_socket(sockfd);
     }
