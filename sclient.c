@@ -123,6 +123,8 @@ int main(const int argc, const char **argv)
         close_socket(sockfd);
     }
 
-    // DELETE ME
-    printf("Input message: %s\n", message);
+    // Construct the request message
+    // Content-length is the byte count of the message
+    char request[MAX_CONT + MAX_HDR];
+    sprintf(request, "POST message SIMPLE/1.0\r\nHost: %s\r\nContent-length: %d\r\n\r\n%s", pserver, message_len, message);
 }
