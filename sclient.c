@@ -144,20 +144,32 @@ int main(const int argc, const char **argv)
 
     // Receive the response message from the server
     char *response = malloc(MAX_CONT + MAX_HDR);
-    int bytes_received = recv(sockfd, response, sizeof(response), 0);
-    if (bytes_received < 0)
+    int total_bytes_received = 0;
+    char *response_body = NULL;
+    int bytes_received = 0;
+    while ((bytes_received = recv(sockfd, response + total_bytes_received, sizeof(response), 0)) > 0)
+    {
+        total_bytes_received += bytes_received;
+
+        if (strstr(response, "\r\n\r\n") != NULL)
+        {
+            // End of the response header found
+            response_body = strstr(response, "\r\n\r\n");
+        }
+    }
+    if (total_bytes_received < 0)
     {
         TRACE("Error receiving response: %s\n", strerror(errno));
         close_socket(sockfd);
     }
-    else if (bytes_received == 0)
+    else if (total_bytes_received == 0)
     {
         TRACE("Connection closed by server.\n");
         close_socket(sockfd);
     }
 
     // Parse the response message
-    response[bytes_received] = '\0';
+    response[total_bytes_received] = '\0';
     char *response_header = strtok(response, "\r\n");
     if (response_header == NULL)
     {
@@ -169,7 +181,6 @@ int main(const int argc, const char **argv)
     if (strstr(response_header, "200 OK") != NULL)
     {
         // Response is successful, write response body to stdout
-        char *response_body = strstr(response, "\r\n\r\n");
         if (response_body == NULL)
         {
             TRACE("Malformed response: No body.\n");
@@ -178,7 +189,7 @@ int main(const int argc, const char **argv)
         else
         {
             response_body += 4;
-            printf("%s", response_body);
+            printf("%s\r\n\r\n", response_body);
         }
     }
     else
@@ -186,6 +197,10 @@ int main(const int argc, const char **argv)
         // Response is an error, write entire response header to stdout
         printf("%s\r\n\r\n", response_header);
     }
+
+    free(response);
+    free(request);
+    free(message);
 
     // Close the socket and exit
     close_socket(sockfd);
