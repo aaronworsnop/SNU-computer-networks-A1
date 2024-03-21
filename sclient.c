@@ -92,8 +92,9 @@ int main(const int argc, const char **argv)
     int message_len = 0;
     int c;
     int eof_found = 0;
-    while ((c = getchar()) != EOF && message_len < MAX_CONT)
+    while (message_len < MAX_CONT)
     {
+        c = getchar();
         if (c == EOF)
         {
             eof_found = 1;
