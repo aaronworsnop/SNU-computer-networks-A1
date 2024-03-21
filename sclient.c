@@ -127,4 +127,26 @@ int main(const int argc, const char **argv)
     // Content-length is the byte count of the message
     char request[MAX_CONT + MAX_HDR];
     sprintf(request, "POST message SIMPLE/1.0\r\nHost: %s\r\nContent-length: %d\r\n\r\n%s", pserver, message_len, message);
+
+    // Send the request message to the server
+    int bytes_sent = send(sockfd, request, strlen(request), 0);
+    if (bytes_sent < 0)
+    {
+        TRACE("Error sending request: %s\n", strerror(errno));
+        close_socket(sockfd);
+    }
+
+    // Receive the response message from the server
+    char response[MAX_CONT + MAX_HDR];
+    int bytes_received = recv(sockfd, response, sizeof(response), 0);
+    if (bytes_received < 0)
+    {
+        TRACE("Error receiving response: %s\n", strerror(errno));
+        close_socket(sockfd);
+    }
+    else if (bytes_received == 0)
+    {
+        TRACE("Connection closed by server.\n");
+        close_socket(sockfd);
+    }
 }
