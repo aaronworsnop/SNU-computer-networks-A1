@@ -88,7 +88,7 @@ int main(const int argc, const char **argv)
     // Do not assume that the input message is always a text message.It can contain
     //     arbitrary content that includes valid “zeros” in the binary content.This means that 5 you should be careful to use string functions(e.g., strlen(), strstr()) on the input
     //         message.
-    char message[MAX_CONT];
+    char *message = malloc(MAX_CONT);
     int message_len = 0;
     int c;
     int eof_found = 0;
@@ -123,10 +123,15 @@ int main(const int argc, const char **argv)
         close_socket(sockfd);
     }
 
+    if (*message >= MAX_CONT)
+    {
+        message_len = MAX_CONT;
+    }
+
     // Construct the request message
     // Content-length is the byte count of the message
-    char request[MAX_CONT + MAX_HDR];
-    sprintf(request, "POST message SIMPLE/1.0\r\nHost: %s\r\nContent-length: %d\r\n\r\n%s", pserver, message_len, message);
+    char *request = malloc(MAX_CONT + MAX_HDR);
+    snprintf(request, MAX_CONT + MAX_HDR, "POST message SIMPLE/1.0\r\nHost: %s\r\nContent-length: %d\r\n\r\n%s", pserver, message_len, message);
 
     // Send the request message to the server
     int bytes_sent = send(sockfd, request, strlen(request), 0);
@@ -137,7 +142,7 @@ int main(const int argc, const char **argv)
     }
 
     // Receive the response message from the server
-    char response[MAX_CONT + MAX_HDR];
+    char *response = malloc(MAX_CONT + MAX_HDR);
     int bytes_received = recv(sockfd, response, sizeof(response), 0);
     if (bytes_received < 0)
     {
