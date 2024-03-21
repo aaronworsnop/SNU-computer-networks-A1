@@ -149,4 +149,39 @@ int main(const int argc, const char **argv)
         TRACE("Connection closed by server.\n");
         close_socket(sockfd);
     }
+
+    // Parse the response message
+    response[bytes_received] = '\0';
+    char *response_header = strtok(response, "\r\n");
+    if (response_header == NULL)
+    {
+        TRACE("Malformed response: Empty header.\n");
+        close_socket(sockfd);
+    }
+
+    // Does the response header contain "200 OK"?
+    if (strstr(response_header, "200 OK") != NULL)
+    {
+        // Response is successful, write response body to stdout
+        char *response_body = strstr(response, "\r\n\r\n");
+        if (response_body == NULL)
+        {
+            TRACE("Malformed response: No body.\n");
+            close_socket(sockfd);
+        }
+        else
+        {
+            response_body += 4;
+            printf("%s", response_body);
+        }
+    }
+    else
+    {
+        // Response is an error, write entire response header to stdout
+        printf("%s\r\n\r\n", response_header);
+    }
+
+    // Close the socket and exit
+    close_socket(sockfd);
+    return 0;
 }
