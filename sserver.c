@@ -25,19 +25,21 @@ void close_socket(int sockfd)
 void handle_client(int client_sock)
 {
     // Receive the request message from the client
-    char *request = malloc(MAX_CONT + MAX_HDR);
+    char *header = malloc(MAX_CONT + MAX_HDR);
     int bytes_received = 0;
     int total_bytes_received = 0;
     char *request_body = NULL;
 
-    while ((bytes_received = recv(client_sock, request + total_bytes_received, sizeof(request), 0)) > 0)
+    while ((bytes_received = recv(client_sock, header + total_bytes_received, sizeof(header), 0)) > 0)
     {
         total_bytes_received += bytes_received;
 
-        if (strstr(request, "\r\n\r\n") != NULL)
+        // Check if the entire header has been received
+        if (strstr(header, "\r\n\r\n") != NULL)
         {
             // End of the request header found
-            request_body = strstr(request, "\r\n\r\n");
+            request_body = strstr(header, "\r\n\r\n");
+            break;
         }
     }
 
@@ -53,8 +55,8 @@ void handle_client(int client_sock)
     }
 
     // Parse the request message
-    request[total_bytes_received] = '\0';
-    char *request_header = strtok(request, "\r\n");
+    header[total_bytes_received] = '\0';
+    char *request_header = strstr(header, "Host");
     if (request_header == NULL)
     {
         TRACE("Malformed request: Empty header.\r\n");
@@ -64,44 +66,40 @@ void handle_client(int client_sock)
     // Check if the request header is well-formed
     const char *error_response = "SIMPLE/1.0 400 Bad Request\r\n\r\n";
 
-    // Does the request header contain "SIMPLE/1.0 200 OK"?
-    if (strstr(request_header, "SIMPLE/1.0 200 OK") == NULL)
+    // Does the request header contain "POST message SIMPLE/1.0"?
+    if (strstr(header, "POST message SIMPLE/1.0") == NULL)
     {
-        if (strstr(request_header, "200 OK") == NULL)
-        {
-            // Doesn't have "200 OK", respond with an error response
-            int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
-            TRACE("Bad Request.\r\n");
-        }
-        else
-        {
-            // Has "200 OK", respond with an error response for incorrect protocol
-            int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
-            TRACE("Malformed request.\r\n");
-        }
+        // Respond with an error response for incorrect protocol
+        send(client_sock, error_response, strlen(error_response), 0);
+        TRACE("Malformed request.\r\n");
     }
 
     // Convert the request header to lowercase and remove all whitespaces
-    for (int i = 0; i < strlen(request_header); i++)
+    for (int i = 0; i < strlen(header); i++)
     {
-        request_header[i] = tolower(request_header[i]);
-        if (request_header[i] == ' ')
+        if (&header == &request_body)
+        {
+            break;
+        }
+
+        header[i] = tolower(header[i]);
+        if (header[i] == ' ')
         {
             // Remove whitespaces
-            for (int j = i; j < strlen(request_header); j++)
+            for (int j = i; j < strlen(header); j++)
             {
-                request_header[j] = request_header[j + 1];
+                header[j] = header[j + 1];
             }
             i--;
         }
     }
 
     // Does the request header contain "host"?
-    char *host = strstr(request_header, "host:");
+    char *host = strstr(header, "host:");
     if (host == NULL)
     {
         // Respond with an error response
-        int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
+        send(client_sock, error_response, strlen(error_response), 0);
         TRACE("Malformed Request.\r\n");
     }
 
@@ -109,23 +107,23 @@ void handle_client(int client_sock)
     if (host[5] == '\0' || host[5] == '\r' || host[5] == '\n')
     {
         // Respond with an error response
-        int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
+        send(client_sock, error_response, strlen(error_response), 0);
         TRACE("Malformed Request. No host name.\r\n");
     }
 
     // Does the request header contain "content-length"?
-    char *content_length = strstr(request_header, "content-length:");
+    char *content_length = strstr(header, "content-length:");
     if (content_length == NULL)
     {
         // Respond with an error response
-        int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
+        send(client_sock, error_response, strlen(error_response), 0);
     }
 
     // Is there content after "content-length:"?
     if (content_length[15] == '\0' || content_length[15] == '\r' || content_length[15] == '\n')
     {
         // Respond with an error response
-        int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
+        send(client_sock, error_response, strlen(error_response), 0);
         TRACE("Malformed Request. Content length not provided.\r\n");
     }
 
@@ -136,45 +134,52 @@ void handle_client(int client_sock)
     if (content_len > MAX_CONT)
     {
         // Respond with an error response
-        int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
+        send(client_sock, error_response, strlen(error_response), 0);
         TRACE("Content length exceeds maximum.\r\n");
     }
 
-    // Is there a request body?
-    if (request_body == NULL)
+    // Capture what was left of the body from the header
+    char *body = malloc(content_len);
+    int content_len_offset = 0;
+    request_body += 4;
+
+    while (*request_body != '\0')
     {
-        // Respond with an error response
-        int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
-        TRACE("Malformed Request. No request body.\r\n");
-    }
-    else
-    {
-        request_body += 4;
+        body[content_len_offset++] = *request_body++;
     }
 
-    // Is the request body the correct length?
-    // Don't use strlen because the request body may not always be a string or have only text
-    int message_len = 0;
-    int c;
-    for (c = 0; c < content_len; c++)
+    // Receive the rest of the request body
+    while (content_len_offset < content_len)
     {
-        if (request_body[c] == '\0')
+        bytes_received = recv(client_sock, body + content_len_offset, content_len - content_len_offset, 0);
+        if (bytes_received <= 0)
         {
-            break;
+            if (bytes_received == 0)
+            {
+                // Connection closed
+                break;
+            }
+            else
+            {
+                // Error receiving data
+                perror("recv error");
+                break;
+            }
         }
-        message_len++;
+
+        content_len_offset += bytes_received;
     }
 
-    if (message_len != content_len)
+    // Check if the received content length matches the expected length
+    if (content_len_offset != content_len)
     {
-        // Respond with an error response
-        int bytes_sent = send(client_sock, error_response, strlen(error_response), 0);
+        send(client_sock, error_response, strlen(error_response), 0);
         TRACE("Malformed Request. Incorrect content length.\r\n");
     }
 
     // Construct the response message
     char *response = malloc(MAX_CONT + MAX_HDR);
-    snprintf(response, MAX_CONT + MAX_HDR, "SIMPLE/1.0 200 OK\r\nContent-length: %d\r\n\r\n%s", message_len, request_body);
+    snprintf(response, MAX_CONT + MAX_HDR, "SIMPLE/1.0 200 OK\r\nContent-length: %d\r\n\r\n%s", content_len, body);
 
     // Send the response message to the client
     int bytes_sent = send(client_sock, response, strlen(response), 0);
@@ -228,15 +233,50 @@ int main(const int argc, const char **argv)
     if (bind(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
     {
         TRACE("Bind failed: %s\n", strerror(errno));
-        close(sockfd);
-        exit(-1);
+        close_socket(sockfd);
     }
 
     // Listen for incoming connections
     if (listen(sockfd, 5) < 0)
     {
         TRACE("Listen failed: %s\n", strerror(errno));
-        close(sockfd);
-        exit(-1);
+        close_socket(sockfd);
     }
+
+    // Accept incoming connections and handle them
+    while (1)
+    {
+        struct sockaddr_in client_addr;
+        socklen_t client_addr_len = sizeof(client_addr);
+        int client_sock = accept(sockfd, (struct sockaddr *)&client_addr, &client_addr_len);
+        if (client_sock < 0)
+        {
+            TRACE("Accept failed: %s\n", strerror(errno));
+            close(sockfd);
+            exit(-1);
+        }
+
+        // Fork a new process to handle the client connection
+        pid_t pid = fork();
+        if (pid < 0)
+        {
+            TRACE("Fork failed: %s\n", strerror(errno));
+            close(client_sock);
+            continue;
+        }
+        else if (pid == 0)
+        {
+            // Child process
+            close(sockfd);
+            handle_client(client_sock);
+            exit(0);
+        }
+        else
+        {
+            // Parent process
+            close(client_sock);
+        }
+    }
+
+    return 0;
 }
