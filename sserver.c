@@ -13,6 +13,14 @@
 #include <sys/wait.h>
 
 #include "macro.h"
+
+// Function to close the socket and exit
+void close_socket(int sockfd)
+{
+    close(sockfd);
+    exit(-1);
+}
+
 /*--------------------------------------------------------------------------------*/
 int main(const int argc, const char **argv)
 {
