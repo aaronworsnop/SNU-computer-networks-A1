@@ -141,7 +141,6 @@ void handle_client(int client_sock)
     // Capture what was left of the body from the header
     char *body = malloc(content_len);
     int content_len_offset = 0;
-    request_body += 4;
 
     while (*request_body != '\0')
     {
