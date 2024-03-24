@@ -202,6 +202,9 @@ void handle_client(int client_sock)
 /*--------------------------------------------------------------------------------*/
 int main(const int argc, const char **argv)
 {
+    // Ignore the SIGPIPE signal
+    signal(SIGPIPE, SIG_IGN);
+
     int i;
     int port = -1;
 

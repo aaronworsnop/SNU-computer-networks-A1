@@ -22,6 +22,9 @@ void close_socket(int sockfd)
 /*--------------------------------------------------------------------------------*/
 int main(const int argc, const char **argv)
 {
+    // Ignore the SIGPIPE signal
+    signal(SIGPIPE, SIG_IGN);
+
     const char *pserver = NULL;
     int port = -1;
     int i;
