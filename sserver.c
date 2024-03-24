@@ -137,6 +137,12 @@ void handle_client(int client_sock)
         send(client_sock, error_response, strlen(error_response), 0);
         TRACE("Content length exceeds maximum.\r\n");
     }
+    else if (content_len <= 0)
+    {
+        // Respond with an error response
+        send(client_sock, error_response, strlen(error_response), 0);
+        TRACE("Malformed Request. Invalid content length.\r\n");
+    }
 
     // Capture what was left of the body from the header
     char *body = malloc(content_len);
