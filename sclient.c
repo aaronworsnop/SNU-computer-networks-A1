@@ -83,7 +83,7 @@ int main(const int argc, const char **argv)
         close_socket(sockfd);
     }
 
-    // Read and parse input from stdin
+    // Read and parse content from stdin
     char *message = malloc(MAX_CONT);
     int message_len = 0;
     int c;
@@ -120,9 +120,14 @@ int main(const int argc, const char **argv)
         close_socket(sockfd);
     }
 
-    if (*message >= MAX_CONT)
+    // Truncate the message to 10MB if it exceeds that length
+    if (message_len >= MAX_CONT)
     {
-        message_len = MAX_CONT;
+        message[MAX_CONT - 1] = '\0';
+    }
+    else
+    {
+        message[message_len] = '\0';
     }
 
     // Construct the request message

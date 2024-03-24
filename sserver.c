@@ -148,9 +148,9 @@ void handle_client(int client_sock)
     }
 
     // Receive the rest of the request body
-    while (content_len_offset < content_len)
+    while (content_len_offset < content_len - 1)
     {
-        bytes_received = recv(client_sock, body + content_len_offset, content_len - content_len_offset, 0);
+        bytes_received = recv(client_sock, body + content_len_offset, content_len - content_len_offset + 1, 0);
         if (bytes_received <= 0)
         {
             if (bytes_received == 0)
@@ -170,10 +170,11 @@ void handle_client(int client_sock)
     }
 
     // Check if the received content length matches the expected length
-    if (content_len_offset != content_len)
+    if (content_len_offset != content_len && content_len_offset != content_len - 1)
     {
         send(client_sock, error_response, strlen(error_response), 0);
         TRACE("Malformed Request. Incorrect content length.\r\n");
+        close_socket(client_sock);
     }
 
     // Construct the response message
