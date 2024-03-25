@@ -74,8 +74,11 @@ void handle_client(int client_sock)
         TRACE("Malformed request.\r\n");
     }
 
+    // Calculate the length of the header part
+    size_t header_length = request_body - header;
+
     // Convert the request header to lowercase and remove all whitespaces
-    for (int i = 0; i < strlen(header); i++)
+    for (int i = 0; i < header_length; i++)
     {
         if (&header == &request_body)
         {
