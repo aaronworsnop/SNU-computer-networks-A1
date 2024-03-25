@@ -56,12 +56,6 @@ void handle_client(int client_sock)
 
     // Parse the request message
     header[total_bytes_received] = '\0';
-    char *request_header = strstr(header, "Host");
-    if (request_header == NULL)
-    {
-        TRACE("Malformed request: Empty header.\r\n");
-        close_socket(client_sock);
-    }
 
     // Check if the request header is well-formed
     const char *error_response = "SIMPLE/1.0 400 Bad Request\r\n\r\n";
